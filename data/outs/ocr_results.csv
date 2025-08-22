@@ -1,0 +1,11 @@
+timestamp,source,frame_idx,text,confidence,x1,y1,x2,y2,crop_path
+1755849232,/Users/amitk/Downloads/7qmafzvy8bh81.jpg,0,gov,0.9954,1408,1296,1932,1687,data/crops/plate_1755849232807187000_0.jpg
+1755849411,/Users/amitk/Downloads/7qmafzvy8bh81.jpg,0,gov,0.9954,1408,1296,1932,1687,data/crops/plate_1755849411828529000_0.jpg
+1755849603,/Users/amitk/Downloads/7qmafzvy8bh81.jpg,0,gov,0.9954,1408,1296,1932,1687,data/crops/plate_1755849603206786000_0.jpg
+1755850146,/Users/amitk/Downloads/7qmafzvy8bh81.jpg,0,1AL1K0M1A,0.6348,1460,1335,1880,1648,data/crops/plate_1755850146637603000_0.jpg
+1755850173,/Users/amitk/Downloads/7qmafzvy8bh81.jpg,0,1AL1K0M1A,0.6348,1460,1335,1880,1648,data/crops/plate_1755850173740570000_0.jpg
+1755850318,/Users/amitk/Downloads/7qmafzvy8bh81.jpg,0,1AL1K0M1A,0.6348,1460,1335,1880,1648,data/crops/plate_1755850318309519000_0.jpg
+1755850355,/Users/amitk/Downloads/7qmafzvy8bh81.jpg,0,1AL1K0M1A,0.6348,1460,1335,1880,1648,data/crops/plate_1755850355279540000_0.jpg
+1755850628,/Users/amitk/Downloads/7qmafzvy8bh81.jpg,0,9AAY228,0.4584,1434,1315,1906,1668,data/crops/plate_1755850628654965000_0.jpg
+1755850800,/Users/amitk/Downloads/7qmafzvy8bh81.jpg,0,9AAY228,0.4584,1434,1315,1906,1668,data/crops/plate_1755850800768836000_0.jpg
+1755851146,/Users/amitk/Downloads/7qmafzvy8bh81.jpg,0,9AAY228,0.4584,1434,1315,1906,1668,data/crops/plate_1755851146958846000_0.jpg

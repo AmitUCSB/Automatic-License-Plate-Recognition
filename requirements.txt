@@ -1,0 +1,9 @@
+
+ultralytics>=8.2.0
+opencv-python>=4.6.0.66
+numpy>=1.23.0
+tqdm>=4.65.0
+matplotlib>=3.7.1
+PyYAML>=6.0.1
+# Optional (experiment tracking)
+# wandb>=0.16.0

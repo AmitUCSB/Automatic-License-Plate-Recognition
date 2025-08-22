@@ -1,0 +1,7 @@
+
+# Update 'path' if your dataset is stored elsewhere.
+path: data
+train: images/train
+val: images/val
+test: images/test
+names: [license_plate]
