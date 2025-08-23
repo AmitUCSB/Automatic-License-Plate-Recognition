@@ -1,4 +1,4 @@
-# License Plate Detection & Tracking (YOLOv8 + EasyOCR)
+# Automatic License Plate Recognition — YOLOv8 + EasyOCR
 
 Real-time license plate detection, tracking, and OCR using **Ultralytics YOLOv8** for object detection and **EasyOCR** for reading plate text. Works with a webcam, video files, or image folders. Outputs cropped plates and a CSV of recognized text with confidences.
 
