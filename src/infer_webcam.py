@@ -75,9 +75,9 @@ def main():
     ap.add_argument("--show", action="store_true")
 
     # Crop controls (shrink detector box before OCR to avoid borders/bolts)
-    ap.add_argument("--shrink", type=float, default=0.10, help="default shrink per side if -x/-y not set")
-    ap.add_argument("--shrink-x", type=float, default=None)
-    ap.add_argument("--shrink-y", type=float, default=None)
+    ap.add_argument("--shrink", type=float, default=None, help="default shrink per side if -x/-y not set")
+    ap.add_argument("--shrink-x", type=float, default=0.06)
+    ap.add_argument("--shrink-y", type=float, default=0.15)
     ap.add_argument("--debug-crops", action="store_true")
 
     args = ap.parse_args()
