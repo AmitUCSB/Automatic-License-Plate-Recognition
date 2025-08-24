@@ -124,20 +124,88 @@ def _binarize_both(gray: np.ndarray):
     adp_inv = cv2.morphologyEx(adp_inv, cv2.MORPH_OPEN, k, iterations=1)
     return adp, adp_inv
 
+# ---------------------- Scoring utilities ---------------------
+def _poly_area(bbox_pts):
+    # bbox_pts is [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]
+    pts = np.array(bbox_pts, dtype=np.float32)
+    return float(abs(cv2.contourArea(pts)))
+
+
+def _compute_conf_score(conf_list, area_list, candidate_text, *,
+                        score_mode: str = "mean",
+                        len_bonus: float = 0.02,
+                        len_bonus_max: int = 4,
+                        regex_bonus: float = 0.0,
+                        require_regex: bool = False):
+    conf_arr = np.asarray(conf_list, dtype=float) if len(conf_list) else np.array([0.0])
+    area_arr = np.asarray(area_list, dtype=float) if len(area_list) else np.array([1.0])
+
+    # base confidence by strategy
+    mode = score_mode.lower()
+    if mode == "weighted" and area_arr.sum() > 0:
+        base = float((conf_arr * (area_arr / (area_arr.sum() + 1e-6))).sum())
+    elif mode == "median":
+        base = float(np.median(conf_arr))
+    elif mode == "min":
+        base = float(np.min(conf_arr))
+    elif mode == "harmonic":
+        base = float(len(conf_arr) / (np.sum(1.0 / (conf_arr + 1e-6))))
+    else:  # "mean"
+        base = float(np.mean(conf_arr))
+
+    # Optional regex gate/bonus
+    match = PLATE_RE.search(candidate_text or "")
+    if require_regex and not match:
+        return 0.0
+
+    score = base
+
+    # length bonus: encourage plate-like lengths
+    if candidate_text:
+        bonus = min(max(len(candidate_text) - 4, 0), len_bonus_max) * float(len_bonus)
+        score += bonus
+
+    if match:
+        score += float(regex_bonus)
+
+    # Clamp to [0, 1] for readability (not strictly necessary)
+    return float(max(0.0, min(1.0, score)))
+
 # ------------------------- OCR runner --------------------------
 def read_plate_text(reader,
                     plate_bgr: np.ndarray,
                     try_char_band: bool = True,
                     decoder: str = "greedy",
                     min_len: int = 5,
-                    save_debug_dir: str | None = None):
+                    save_debug_dir: str | None = None,
+                    # NEW: scoring controls (can also be set via env)
+                    score_mode: str = "mean",
+                    len_bonus: float = 0.02,
+                    len_bonus_max: int = 4,
+                    regex_bonus: float = 0.10,
+                    require_regex: bool = False):
     """
-    Run EasyOCR but *focus* on the characters band and restrict characters
-    to letters+digits so we ignore logos, state names, and decorations.
+    Run EasyOCR but *focus* on the characters band and compute a configurable
+    confidence score.
 
-    Returns: (best_text, best_conf, (y0,y1), debug_dict)
+    The returned "conf" is the computed score in [0,1] after applying
+    the chosen strategy and bonuses. Adjust behavior via parameters or env vars:
+      OCR_SCORE_MODE=mean|median|min|weighted|harmonic
+      OCR_LEN_BONUS=0.02 (per extra char up to OCR_LEN_MAX)
+      OCR_LEN_MAX=4
+      OCR_REGEX_BONUS=0.10
+      OCR_REQUIRE_REGEX=0|1
+
+    Returns: (best_text, best_conf_score, (y0,y1), debug_dict)
     """
-    dbg = {}
+    # Allow environment overrides without touching call sites
+    score_mode = os.getenv("OCR_SCORE_MODE", score_mode)
+    len_bonus = float(os.getenv("OCR_LEN_BONUS", len_bonus))
+    len_bonus_max = int(os.getenv("OCR_LEN_MAX", len_bonus_max))
+    regex_bonus = float(os.getenv("OCR_REGEX_BONUS", regex_bonus))
+    require_regex = str(os.getenv("OCR_REQUIRE_REGEX", str(int(require_regex)))) in {"1", "true", "True", "yes", "YES"}
+
+    dbg = {"scoring": {"mode": score_mode, "len_bonus": len_bonus, "len_bonus_max": len_bonus_max, "regex_bonus": regex_bonus, "require_regex": require_regex}}
     yband = (0, plate_bgr.shape[0])
 
     roi = plate_bgr.copy()
@@ -158,7 +226,7 @@ def read_plate_text(reader,
         (_ensure_3ch(bin2), "bin2"),
     ]
 
-    best_text, best_conf, best_src = "", 0.0, None
+    best_text, best_score, best_src = "", 0.0, None
     ocr_runs = []
 
     for img, tag in candidates:
@@ -166,36 +234,44 @@ def read_plate_text(reader,
             img,
             allowlist=ALLOWED,
             detail=1,
-            # A little stricter on linking low-confidence regions
             text_threshold=0.7,
             low_text=0.4,
             link_threshold=0.4,
             decoder=decoder,
         )
-        # results: list of [bbox, text, conf]
         if not results:
             ocr_runs.append({"tag": tag, "raw": []})
             continue
 
+        # Gather stats
         raw_text = "".join([r[1] for r in results])
-        conf = float(np.mean([r[2] for r in results]))
         cleaned = clean_plate_text(raw_text)
+        conf_list = [float(r[2]) for r in results]
+        area_list = [_poly_area(r[0]) for r in results]
 
-        # Prefer strings that look like plates and are longer
+        # Prefer regex-looking substring
         match = PLATE_RE.search(cleaned)
         candidate_text = match.group(0) if match else cleaned
 
-        # Score: confidence + small bonus for length in [min_len, 8]
-        length_bonus = min(max(len(candidate_text) - (min_len - 1), 0), 4) * 0.02
-        score = conf + length_bonus
+        score = _compute_conf_score(conf_list, area_list, candidate_text,
+                                    score_mode=score_mode,
+                                    len_bonus=len_bonus,
+                                    len_bonus_max=len_bonus_max,
+                                    regex_bonus=regex_bonus,
+                                    require_regex=require_regex)
 
         ocr_runs.append({
-            "tag": tag, "raw_text": raw_text, "cleaned": cleaned,
-            "candidate": candidate_text, "conf": conf, "score": score
+            "tag": tag,
+            "raw_text": raw_text,
+            "cleaned": cleaned,
+            "candidate": candidate_text,
+            "conf_list": conf_list,
+            "areas": area_list,
+            "score": score,
         })
 
-        if score > best_conf:
-            best_conf = score
+        if score > best_score:
+            best_score = score
             best_text = candidate_text
             best_src = tag
 
@@ -205,7 +281,6 @@ def read_plate_text(reader,
     if save_debug_dir:
         Path(save_debug_dir).mkdir(parents=True, exist_ok=True)
         base = os.path.join(save_debug_dir, "debug")
-        # Save band projection visualization
         if "band" in dbg:
             proj = (dbg["band"]["proj"] * 255).astype(np.uint8)
             proj_img = np.repeat(proj.reshape(-1, 1), 200, axis=1)
@@ -214,5 +289,44 @@ def read_plate_text(reader,
         cv2.imwrite(base + f"_bin1.png", _ensure_3ch(bin1))
         cv2.imwrite(base + f"_bin2.png", _ensure_3ch(bin2))
 
-    return best_text, float(best_conf), yband, dbg
+    return best_text, float(best_score), yband, dbg
 
+# -------------------------- Demo main --------------------------
+if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("image", help="path to a cropped plate image or full car image")
+    ap.add_argument("--save_debug", default="ocr_debug", help="dir to dump debug imgs")
+    ap.add_argument("--gpu", action="store_true")
+    # Expose scoring knobs via CLI for testing
+    ap.add_argument("--score_mode", default=os.getenv("OCR_SCORE_MODE", "mean"), choices=["mean","median","min","weighted","harmonic"])
+    ap.add_argument("--len_bonus", type=float, default=float(os.getenv("OCR_LEN_BONUS", 0.02)))
+    ap.add_argument("--len_max", type=int, default=int(os.getenv("OCR_LEN_MAX", 4)))
+    ap.add_argument("--regex_bonus", type=float, default=float(os.getenv("OCR_REGEX_BONUS", 0.10)))
+    ap.add_argument("--require_regex", action="store_true" if os.getenv("OCR_REQUIRE_REGEX","0") in {"1","true","yes"} else "store_false")
+    args = ap.parse_args()
+
+    img = cv2.imread(args.image)
+    if img is None:
+        raise SystemExit(f"Could not read {args.image}")
+
+    reader = init_easyocr(gpu=args.gpu, verbose=False)
+
+    text, score, (y0, y1), dbg = read_plate_text(
+        reader, img, save_debug_dir=args.save_debug,
+        score_mode=args.score_mode,
+        len_bonus=args.len_bonus,
+        len_bonus_max=args.len_max,
+        regex_bonus=args.regex_bonus,
+        require_regex=args.require_regex,
+    )
+
+    print({"plate": text, "score": round(score, 3), "band": [int(y0), int(y1)], "src": dbg.get("best_src"), "scoring": dbg.get("scoring")})
+
+    # Visual overlay
+    vis = img.copy()
+    cv2.rectangle(vis, (0, y0), (vis.shape[1]-1, y1), (0, 255, 0), 2)
+    cv2.putText(vis, text, (10, max(30, y0 - 10)), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+    out_path = Path(args.save_debug) / "overlay.png"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(out_path), vis)
