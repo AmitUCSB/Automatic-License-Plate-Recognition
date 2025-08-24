@@ -15,7 +15,7 @@ def main():
     ap.add_argument("--source", default="0")
     ap.add_argument("--imgsz", type=int, default=960)
     ap.add_argument("--conf", type=float, default=0.25)
-    ap.add_argument("--device", default="auto")
+    ap.add_argument("--device", default="cpu")
 
     # OCR & logging
     ap.add_argument("--ocr", action="store_true")

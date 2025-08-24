@@ -2,7 +2,7 @@
 from ultralytics import YOLO
 
 class PlateDetector:
-    def __init__(self, weights, device="auto", imgsz=960, conf=0.25):
+    def __init__(self, weights, device="cpu", imgsz=960, conf=0.25):
         self.model = YOLO(weights)
         self.device = device
         self.imgsz = imgsz
