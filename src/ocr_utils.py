@@ -132,11 +132,11 @@ def _poly_area(bbox_pts):
 
 
 def _compute_conf_score(conf_list, area_list, candidate_text, *,
-                        score_mode: str = "mean",
-                        len_bonus: float = 0.02,
+                        score_mode: str = "harmonic",
+                        len_bonus: float = 0.0,
                         len_bonus_max: int = 4,
                         regex_bonus: float = 0.0,
-                        require_regex: bool = False):
+                        require_regex: bool = True):
     conf_arr = np.asarray(conf_list, dtype=float) if len(conf_list) else np.array([0.0])
     area_arr = np.asarray(area_list, dtype=float) if len(area_list) else np.array([1.0])
 
@@ -182,7 +182,7 @@ def read_plate_text(reader,
                     score_mode: str = "mean",
                     len_bonus: float = 0.02,
                     len_bonus_max: int = 4,
-                    regex_bonus: float = 0.10,
+                    regex_bonus: float = 0.20,
                     require_regex: bool = False):
     """
     Run EasyOCR but *focus* on the characters band and compute a configurable
@@ -199,11 +199,14 @@ def read_plate_text(reader,
     Returns: (best_text, best_conf_score, (y0,y1), debug_dict)
     """
     # Allow environment overrides without touching call sites
-    score_mode = os.getenv("OCR_SCORE_MODE", score_mode)
-    len_bonus = float(os.getenv("OCR_LEN_BONUS", len_bonus))
-    len_bonus_max = int(os.getenv("OCR_LEN_MAX", len_bonus_max))
-    regex_bonus = float(os.getenv("OCR_REGEX_BONUS", regex_bonus))
-    require_regex = str(os.getenv("OCR_REQUIRE_REGEX", str(int(require_regex)))) in {"1", "true", "True", "yes", "YES"}
+    # Hardcoded scoring defaults; ignore environment by default.
+    USE_ENV = False
+    if USE_ENV:
+        score_mode = os.getenv("OCR_SCORE_MODE", score_mode)
+        len_bonus = float(os.getenv("OCR_LEN_BONUS", len_bonus))
+        len_bonus_max = int(os.getenv("OCR_LEN_MAX", len_bonus_max))
+        regex_bonus = float(os.getenv("OCR_REGEX_BONUS", regex_bonus))
+        require_regex = str(os.getenv("OCR_REQUIRE_REGEX", str(int(require_regex)))) in {"1", "true", "True", "yes", "YES"}
 
     dbg = {"scoring": {"mode": score_mode, "len_bonus": len_bonus, "len_bonus_max": len_bonus_max, "regex_bonus": regex_bonus, "require_regex": require_regex}}
     yband = (0, plate_bgr.shape[0])
@@ -299,7 +302,7 @@ if __name__ == "__main__":
     ap.add_argument("--save_debug", default="ocr_debug", help="dir to dump debug imgs")
     ap.add_argument("--gpu", action="store_true")
     # Expose scoring knobs via CLI for testing
-    ap.add_argument("--score_mode", default=os.getenv("OCR_SCORE_MODE", "mean"), choices=["mean","median","min","weighted","harmonic"])
+    ap.add_argument("--score_mode", default="harmonic", choices=["mean","median","min","weighted","harmonic"])
     ap.add_argument("--len_bonus", type=float, default=float(os.getenv("OCR_LEN_BONUS", 0.02)))
     ap.add_argument("--len_max", type=int, default=int(os.getenv("OCR_LEN_MAX", 4)))
     ap.add_argument("--regex_bonus", type=float, default=float(os.getenv("OCR_REGEX_BONUS", 0.10)))
