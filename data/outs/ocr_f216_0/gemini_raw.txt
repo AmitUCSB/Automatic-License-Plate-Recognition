@@ -1,0 +1,3 @@
+```json
+{"plate":"VFER","confidence":0.6}
+```
