@@ -4,6 +4,8 @@ Real-time license plate detection, tracking, and OCR using **Ultralytics YOLOv8*
 
 > Repo layout includes `src/`, `data/`, `runs/detect/`, `requirements.txt`, and a YOLO weight file `yolov8n.pt`. See GitHub file list for details.
 
+## Demo
+
 ![ALPR demo](data/demo.gif)
 
 ## Features
