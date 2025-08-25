@@ -8,7 +8,7 @@ Real-time license plate detection, tracking, and OCR using **Ultralytics YOLOv8*
 
 - **Detect** license plates with YOLOv8 (default: `yolov8n.pt`)
 - **Track** detections across frames (ID stitching-friendly utils)
-- **LLM** plate crops with GEMINIAPI, with configurable preprocessing
+- **LLM** plate crops with GEMINI-API, with configurable preprocessing
 - **Save** crops and an `llm_results.csv` (timestamp, text, confidence, bbox)
 - **Run** on webcam (`--source 0`), videos, or image folders
 
