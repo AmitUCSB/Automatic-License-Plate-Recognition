@@ -1,15 +1,19 @@
 # Automatic License Plate Recognition — YOLOv8 + EasyOCR
 
-Real-time license plate detection, tracking, and OCR using **Ultralytics YOLOv8** for object detection and **GEMINI-LLM** for reading plate text. Works with a webcam, video files, or image folders. Outputs cropped plates and a CSV of recognized text with confidences.
+Real-time license plate detection, tracking, and OCR using **Ultralytics YOLOv8** for object detection and **EasyOCR** for reading plate text. Works with a webcam, video files, or image folders. Outputs cropped plates and a CSV of recognized text with confidences.
 
-> Repo layout includes `src/`, `data/`, `runs/detect/`, `requirements.txt`, and a YOLO weight file `yolov8n.pt`. See GitHub file list for details.  
+> Repo layout includes `src/`, `data/`, `runs/detect/`, `requirements.txt`, and a YOLO weight file `yolov8n.pt`. See GitHub file list for details.
+
+## Demo
+
+![ALPR demo](data/demo.gif)
 
 ## Features
 
 - **Detect** license plates with YOLOv8 (default: `yolov8n.pt`)
 - **Track** detections across frames (ID stitching-friendly utils)
-- **LLM** plate crops with GEMINI-API, with configurable preprocessing
-- **Save** crops and an `llm_results.csv` (timestamp, text, confidence, bbox)
+- **OCR** plate crops with EasyOCR, with configurable preprocessing
+- **Save** crops and an `ocr_results.csv` (timestamp, text, confidence, bbox)
 - **Run** on webcam (`--source 0`), videos, or image folders
 
 ---
