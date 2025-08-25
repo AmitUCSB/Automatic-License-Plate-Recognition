@@ -6,7 +6,7 @@ Real-time license plate detection, tracking, and OCR using **Ultralytics YOLOv8*
 
 ## Demo
 
-https://github.com/user-attachments/assets/7dee6557-ed00-48a4-b571-94b09f02f6bb
+![ALPR demo](data/demo.gif)
 
 
 ## Features
