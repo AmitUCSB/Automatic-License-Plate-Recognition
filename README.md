@@ -1,4 +1,4 @@
-# Automatic License Plate Recognition — YOLOv8 + EasyOCR
+# Automatic License Plate Recognition — YOLOv8 + Google Gemini
 
 Real-time license plate detection, tracking, and text scanning using **Ultralytics YOLOv8** for object detection and **Google Gemini** for reading plate text. Works with a webcam, video files, or image folders. Outputs cropped plates and a CSV of recognized text with confidences.
 
