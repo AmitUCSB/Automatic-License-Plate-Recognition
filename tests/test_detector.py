@@ -16,7 +16,7 @@ class _FakeYOLO:
         self.calls = []
 
     def __call__(self, frame, **kwargs):
-        # Mimic ultralytics return: list-like with .boxes.data.tolist()
+
         self.calls.append(kwargs)
         class _Boxes:
             def __init__(self):

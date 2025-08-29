@@ -3,7 +3,6 @@ import os, sys, pathlib
 import pytest
 import numpy as np
 
-# Ensure we can import from src/
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC_DIR = REPO_ROOT / "src"
 if str(SRC_DIR) not in sys.path:

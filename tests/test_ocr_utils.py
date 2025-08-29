@@ -21,7 +21,7 @@ def test_clean_and_regex_basic():
     assert re.fullmatch(r"[A-Z0-9]+", cleaned)
     assert cleaned == cleaned.upper()
 
-    # Regex sanity
+    # Regex
     valid = ["7ABC123", "ABC12", "ZZ99999", "X1Y2Z3AA"]
     invalid = ["", "AB", "TOO0L0NGP", "abc123", "ABC-123"]
     for s in valid:
@@ -65,8 +65,7 @@ def test_try_ocr_with_retries_uses_best_result(dummy_plate_image, reader_stub):
     if not hasattr(o, "try_ocr_with_retries"):
         pytest.skip("try_ocr_with_retries not implemented")
 
-    # Make the stub return two different confidences on successive calls
-    # If your function calls readtext once, that's fine—the best is 0.92.
+
     reader_stub.returns = [
         ([(0,0),(1,0),(1,1),(0,1)], "7ABC123", 0.80),
         ([(0,0),(1,0),(1,1),(0,1)], "7ABC123", 0.92),
@@ -84,7 +83,6 @@ def test_try_ocr_with_retries_uses_best_result(dummy_plate_image, reader_stub):
             debug=False, tag="t"
         )
     else:
-        # Fallback: call positionally with common arg order
         res = o.try_ocr_with_retries(reader_stub, dummy_plate_image, 80, 80, 320, 150, 0.0, 0.0)
 
     text, conf, coords = res

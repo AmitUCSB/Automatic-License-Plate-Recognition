@@ -23,7 +23,6 @@ def test_save_csv_row_writes_line(tmp_csv):
     u = _import_utils()
     if not hasattr(u, "save_csv_row"):
         pytest.skip("save_csv_row not implemented")
-    # Minimal columns—adjust/add fields as your function expects
     row = {"frame": 1, "text": "7ABC123", "conf": 0.91, "x1": 80, "y1": 80, "x2": 320, "y2": 150}
     u.save_csv_row(tmp_csv, row)
     assert tmp_csv.exists()
@@ -47,6 +46,5 @@ def test_annotate_and_fps_do_not_crash(monkeypatch):
     out = u.annotate_text(img.copy(), "7ABC123", (90, 120))
     assert isinstance(out, np.ndarray) and out.shape == img.shape
 
-    # draw_fps should accept a float-ish fps and return an image without error
     out2 = u.draw_fps(img.copy(), fps=29.97)
     assert isinstance(out2, np.ndarray) and out2.shape == img.shape
