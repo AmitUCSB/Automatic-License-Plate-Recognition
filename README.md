@@ -63,8 +63,6 @@ On first run, **EasyOCR** will download models (one‑time). If your network is 
 
 ### A) From the command line
 
-Common patterns (adjust to your setup):
-
 ```bash
 # Webcam (device 0)
 python src/infer_webcam.py --source 0
@@ -122,8 +120,6 @@ Most tuning lives in `src/ocr_utils.py` and `src/infer_webcam.py`:
 * **Crop tightening**: `shrink_x / shrink_y` (horizontal/vertical crop tighten). A typical default is small (e.g., `shrink_x = 0.06`).
 * **OCR preprocessing**: grayscale → equalize → blur → threshold. You can tweak the manual threshold constant to increase plate contrast.
 
-Tip: Bigger `imgsz` can improve recall but will be slower. Increase `conf` to reduce false positives.
-
 ---
 
 ## Tips for better OCR
@@ -165,8 +161,3 @@ pytest -q
 * [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics)
 * [EasyOCR](https://github.com/JaidedAI/EasyOCR)
 
----
-
-## License
-
-This project is for educational/research use. Add a license file if you plan to distribute binaries or models.
